@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Filter</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+  <style>
+    /* Styling as in the provided code */
+    body { padding-top: 30px; }
+    .product { margin-bottom: 30px; }
+    .product-inner {
+      box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+      padding: 15px;
+      border-radius: 8px;
+      transition: all 0.3s ease-in-out;
+    }
+    .product-inner:hover { box-shadow: 0 0 15px rgba(0, 0, 0, .4); }
+    .product img {
+      margin-bottom: 15px;
+      cursor: pointer;
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+    /* Responsive adjustments */
+    @media (max-width: 1200px) { .product img { height: 120px; } }
+    @media (max-width: 992px) { .product img { height: 100px; } }
+    @media (max-width: 768px) { .product img { height: 80px; } }
+    @media (max-width: 576px) { .product { width: 100%; } }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="row" id="search">
+      <form id="search-form" action="" method="POST" enctype="multipart/form-data">
+        <div class="form-group col-xs-9">
+          <input id="search-input" class="form-control" type="text" placeholder="Search" />
+        </div>
+        <div class="form-group col-xs-3">
+          <button type="submit" class="btn btn-block btn-primary">Search</button>
+        </div>
+      </form>
+    </div>
+    <div class="row" id="filter">
+      <form>
+        <div class="form-group col-sm-3 col-xs-6">
+          <select data-filter="make" class="filter-make filter form-control">
+            <option value="">Product Type</option>
+          </select>
+        </div>
+        <div class="form-group col-sm-3 col-xs-6">
+          <select data-filter="model" class="filter-model filter form-control">
+            <option value="">Installation & Operation</option>
+          </select>
+        </div>
+        <div class="form-group col-sm-3 col-xs-6">
+          <select data-filter="type" class="filter-type filter form-control">
+            <option value="">Best Performance</option>
+          </select>
+        </div>
+        <div class="form-group col-sm-3 col-xs-6">
+          <select data-filter="variety" class="filter-variety filter form-control">
+            <option value="">Window Type</option>
+          </select>
+        </div>
+      </form>
+    </div>
+    <div class="row" id="products">
+      <!-- Product cards will be dynamically injected here -->
+    </div>
+  </div>
+
+  <script>
+    // Fetch product data from the server and dynamically populate products and filters
+    fetch('https://herbs-product.vercel.app/api/products')
+      .then(response => response.json())
+      .then(data => {
+       
+        data.forEach(element => {
+      console.log("Creator Data:", element); // Log the entire object
+      // If you want to see the fields in a more structured way
+      console.table(element); // This will display the fields in a table format
+    });
+        populateFilters(data);
+        populateProducts(data);
+
+        // Filter functionality
+        $('.filter').change(function () {
+          const selectedMake = $('.filter-make').val();
+          const selectedModel = $('.filter-model').val();
+          const selectedType = $('.filter-type').val();
+          const selectedVariety = $('.filter-variety').val();
+
+          const filteredData = data.filter(product =>
+            (selectedMake === "" || product.make === selectedMake) &&
+            (selectedModel === "" || product.model === selectedModel) &&
+            (selectedType === "" || product.type === selectedType) &&
+            (selectedVariety === "" || product.variety === selectedVariety)
+          );
+
+          populateProducts(filteredData);
+        });
+
+        // Search functionality
+        $("#search-form").on("submit", function (e) {
+          e.preventDefault();
+          const query = $("#search-input").val().toLowerCase();
+          const filteredData = data.filter(product =>
+            product.name.toLowerCase().includes(query)
+          );
+          populateProducts(filteredData);
+        });
+      })
+      .catch(error => console.error("Error fetching product data:", error));
+
+    function populateFilters(data) {
+      const makeSelect = $('.filter-make');
+      const modelSelect = $('.filter-model');
+      const typeSelect = $('.filter-type');
+      const varietySelect = $('.filter-variety');
+
+      const makes = [...new Set(data.map(item => item.make).filter(make => make))];
+      const models = [...new Set(data.map(item => item.model).filter(model => model))];
+      const types = [...new Set(data.map(item => item.type).filter(type => type))];
+      const varieties = [...new Set(data.map(item => item.variety).filter(variety => variety))];
+
+      makes.forEach(make => makeSelect.append(new Option(make, make)));
+      models.forEach(model => modelSelect.append(new Option(model, model)));
+      types.forEach(type => typeSelect.append(new Option(type, type)));
+      varieties.forEach(variety => varietySelect.append(new Option(variety, variety)));
+    }
+
+    function populateProducts(data) {
+      const productContainer = $('#products');
+      productContainer.empty();
+
+      data.forEach((product, index) => {
+        console.log("product:- "+product["id"]);
+        
+        const productCard = `
+          <div class="col-sm-4 col-xs-12 product">
+            <div class="product-inner">
+                <a href="gallery.html?id=${product.ProductID}">
+                <img class="product-image" src="${product.images[0]}" alt="${product.name}">
+                <h4>${product.name}</h4>
+              </a>
+            </div>
+          </div>
+        `;
+        productContainer.append(productCard);
+      });
+    }
+  </script>
+</body>
+</html>

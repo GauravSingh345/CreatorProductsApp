@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Gallery</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <style>
+    body {
+      padding-top: 30px;
+    }
+  
+    h2 {
+      text-align: center;
+      font-size: 2rem; /* Adjusted for better visibility on larger screens */
+    }
+  
+    #gallery {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 100%;
+      padding: 0 10px; /* Adding padding to ensure it doesn’t touch the edges */
+    }
+  
+    #mainImage, #mainVideo {
+      max-width: 90%; /* Ensures that the image/video doesn't go beyond the screen */
+      width: 100%;
+      height: 42em; /* Keep the aspect ratio */
+      margin-bottom: 20px;
+    }
+  
+    #mainVideo {
+      display: none;
+    }
+  
+    #thumbnails {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 90%; /* Align thumbnails with the main media */
+      gap: 10px;
+      margin: 10px;
+    }
+  
+    .thumbnail {
+      width: 100px;
+      margin: 5px;
+      cursor: pointer;
+    }
+  
+    /* Media Queries for responsiveness */
+    @media (min-width: 1200px) {
+      #mainImage, #mainVideo {
+        max-width: 80%; /* Reduce the width for very large screens */
+      }
+  
+      h2 {
+        font-size: 2.5rem; /* Larger text for big screens */
+      }
+    }
+  
+    @media (max-width: 1200px) {
+      .thumbnail {
+        width: 90px;
+      }
+  
+      #mainImage, #mainVideo {
+        max-width: 85%; /* Increase width for large laptops */
+      }
+    }
+  
+    @media (max-width: 992px) {
+      #gallery {
+        flex-direction: column;
+        align-items: center;
+      }
+  
+      #mainImage, #mainVideo {
+        max-width: 80%; /* Make main image/video larger on tablets */
+      }
+  
+      .thumbnail {
+        width: 80px;
+      }
+    }
+  
+    @media (max-width: 768px) {
+      #mainImage, #mainVideo {
+        width: 100%; /* Full width for mobile devices */
+      }
+  
+      .thumbnail {
+        width: 60px;
+      }
+    }
+  
+    @media (max-width: 576px) {
+      .thumbnail {
+        width: 50px;
+      }
+    }
+  
+    @media (max-width: 400px) {
+      .thumbnail {
+        width: 40px;
+      }
+  
+      h2 {
+        font-size: 1.5rem; /* Reduce font size for small screens */
+      }
+    }
+  
+    /* Handling rotation on mobile devices */
+    @media (max-width: 768px) and (orientation: portrait) {
+      #mainImage, #mainVideo {
+        transform: rotate(0deg); /* No rotation in portrait mode */
+        width: 100%;
+        height: auto;
+      }
+  
+      .thumbnail {
+        transform: rotate(0deg); /* No rotation in portrait mode */
+      }
+    }
+  
+    @media (max-width: 768px) and (orientation: landscape) {
+      #mainImage, #mainVideo {
+       /* Rotate main image for landscape mode */
+        width: auto; /* Adjust width to fit height */
+        height: 100%;
+      }
+  
+      .thumbnail {
+        /* Rotate thumbnails for landscape mode */
+        width: auto;
+        height: 40px;
+      }
+    }
+  </style>
+  
+</head>
+<body>
+  <div class="container">
+    <h2 id="Heading">Product Gallery</h2>
+    <div id="gallery">
+      <img id="mainImage" src="" alt="Main Image">
+      <div id="thumbnails"></div>
+    </div>
+  </div>
+
+  <script>
+    // Function to get query parameters
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    $(document).ready(function () {
+      // Get the product ID from the URL
+      const productID = getQueryParam('id');
+
+      // Fetch all products from the server
+      fetch('https://herbs-product.vercel.app/api/products')
+        .then(response => response.json())
+        .then(products => {
+          // Find the product with the matching ID
+          const product = products.find(p => p.ProductID === productID);
+
+          // Display the product details if found
+          if (product) {
+            $('#mainImage').attr('src', product.images[0]); // Set main image
+            $('#Heading').text(`Product Gallery - ${product.name}`);
+            $('#thumbnails').empty();
+
+            // Display thumbnails
+            product.images.forEach((image, index) => {
+              const thumbnail = `<img class="thumbnail" src="${image}" alt="Thumbnail ${index + 1}" data-index="${index}">`;
+              $('#thumbnails').append(thumbnail);
+            });
+
+            // Handle thumbnail click to update the main image
+            $(document).on('click', '.thumbnail', function () {
+              const index = $(this).data('index');
+              $('#mainImage').attr('src', product.images[index]);
+            });
+          } else {
+            alert('Product not found.');
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching product data:", error);
+          alert('Failed to load product data.');
+        });
+    });
+  </script>
+</body>
+</html>
